@@ -202,8 +202,9 @@ int main() {
 
   int lane = 1;
   double ref_vel = 0;
+  double lane_life = 0.;
 
-  h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,uWS::OpCode opCode) {
+  h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &lane_life](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -260,6 +261,7 @@ int main() {
           double right_space_front = 999.;
           double ego_space_front = 999.;
           double ego_space_rear = 999.;
+          
 
           // check sensor fusion data
           for (int i=0; i<sensor_fusion.size(); i++) {
@@ -272,7 +274,7 @@ int main() {
             check_car_s += ((double)previous_path_size*.02*check_speed);
             // within ego-lane
             if(d<(2+4*lane+2) && d>(2+4*lane-2)) { 
-              if ((check_car_s>car_s) && ((check_car_s-car_s)<30)) {  // too close
+              if ((check_car_s>car_s) && ((check_car_s-car_s)<50)) {  // too close
                 too_close = true;
               }
               if ((check_car_s-car_s)>0 && (check_car_s-car_s)<ego_space_front) { // update ego lane front space 
@@ -280,8 +282,8 @@ int main() {
               } else if ((check_car_s-car_s)<=0 && abs(check_car_s-car_s)<ego_space_rear) { // update ego lane rear space
                 ego_space_rear = abs(check_car_s-car_s);
               }
-              cout<< "ego rear" << ego_space_rear <<endl;
-              cout<< "ego front" << ego_space_front <<endl;
+              // cout<< "ego rear" << ego_space_rear <<endl;
+              // cout<< "ego front" << ego_space_front <<endl;
             }
             // left
             else if(d<(2+4*(lane-1)+2) && d>(2+4*(lane-1)-2)) {
@@ -290,8 +292,8 @@ int main() {
               } else if ((check_car_s-car_s)<=0 && abs(check_car_s-car_s)<left_space_rear) {  // update left lane rear space
                 left_space_rear = abs(check_car_s-car_s);
               }
-              cout<< "left rear" << left_space_rear <<endl;
-              cout<< "left front" << left_space_front <<endl;
+              // cout<< "left rear" << left_space_rear <<endl;
+              // cout<< "left front" << left_space_front <<endl;
             }
             // right
             else if(d<(2+4*(lane+1)+2) && d>(2+4*(lane+1)-2)) {
@@ -300,8 +302,8 @@ int main() {
               } else if ((check_car_s-car_s)<=0 && abs(check_car_s-car_s)<right_space_rear) { // update right lane rear space
                 right_space_rear = abs(check_car_s-car_s);
               }
-              cout<< "right rear" << right_space_rear <<endl;
-              cout<< "right front" << right_space_front <<endl;
+              // cout<< "right rear" << right_space_rear <<endl;
+              // cout<< "right front" << right_space_front <<endl;
             }
 
           }
@@ -312,7 +314,7 @@ int main() {
           double cost_stay = 0.;
 
           // if too close, consider lane change
-          if (too_close) {
+          if (too_close ) {
             if (lane==0) {
               cost_right += 2;
             }
@@ -327,6 +329,7 @@ int main() {
             cost_stay += 2;
           }
 
+        
           // cancel left change if rear space or front space on is limited
           if (cost_left > 0 && (left_space_rear/20.)>1 && (left_space_front/20.)>1) {
             cost_left += (left_space_front/100.);
@@ -343,24 +346,26 @@ int main() {
 
           cost_stay += (ego_space_front/100.);
 
-          if (cost_left>cost_stay && cost_left>cost_right) {
+          if (cost_left>cost_stay && cost_left>cost_right && lane_life>20) {
             lane -= 1;
             lane_change = true;
+            lane_life = 0;
           }
-          else if (cost_right>cost_stay && cost_right>cost_left) {
+          else if (cost_right>cost_stay && cost_right>cost_left && lane_life>20) {
             lane += 1;
             lane_change = true;
+            lane_life = 0;
+          }
+          else {
+            lane_life += 1;
           }
 
           // update speed reference
           if (too_close){
             ref_vel -= 0.424;
           }
-          else if (ref_vel < 49.5) {
+          else if (ref_vel < 48.5) {
             ref_vel += 0.324;
-          }
-          else if (lane_change) {
-            ref_vel += 0.424;
           }
           
 
@@ -368,6 +373,9 @@ int main() {
           cout<< "cost_left " << cost_left <<endl;
           cout<< "cost_stay " << cost_stay <<endl;
           cout<< "cost_right " << cost_right <<endl;
+
+          cout<< "car speed " << car_speed <<endl;
+          cout<< "lane_life " << lane_life <<endl;          
 
           // build path points
           vector<double> ptsx;
