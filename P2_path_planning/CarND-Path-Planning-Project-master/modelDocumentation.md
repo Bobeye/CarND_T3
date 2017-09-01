@@ -1,3 +1,5 @@
+## Model
+
 Speed selection and path planning of the ego-vehicle is treated seperately. Speed is controled with reference to lead vehicle distance and speed limit. Path planning model is explained below.
 
 ### 1. Transfer sensor fusion results to free space configuration
@@ -47,3 +49,8 @@ if (cost_left > 0 && (left_space_rear/20.)>1 && (left_space_front/20.)>1) {
 ```
 * Add extra cost to lane stay with front space devided by the same coefficient used in the last step
 * Check all three costs, take the move with the highest cost.
+
+## Performance
+The performance is good. The only possible failure that's being spotted so far happens at the lane change stage with low speed and heavy traffic. The vehicle may stay between lanes longer than 3 second. A possible solution could be setting a memory for selected move and freeze the sensor fusion data for a short period of time before the lane change manuver is complete.
+
+A recorde demo is here: https://youtu.be/1hvsCNfArxQ
