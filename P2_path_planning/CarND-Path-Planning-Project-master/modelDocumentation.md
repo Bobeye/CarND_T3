@@ -51,6 +51,6 @@ if (cost_left > 0 && (left_space_rear/20.)>1 && (left_space_front/20.)>1) {
 * Check all three costs, take the move with the highest cost.
 
 ## Performance
-The performance is good. The only possible failure that's being spotted so far happens at the lane change stage with low speed and heavy traffic. The vehicle may stay between lanes longer than 3 second. A possible solution could be setting a memory for selected move and freeze the sensor fusion data for a short period of time before the lane change manuver is complete.
+The performance is good. The only possible failure that's being spotted so far happens at the lane change stage with low speed and heavy traffic. The vehicle may stay between lanes longer than 3 second. A possible solution could be setting a memory for selected move and freeze the sensor fusion data for a short period of time before the lane change maneuver is complete.
 
 A recorde demo is here: https://youtu.be/1hvsCNfArxQ
