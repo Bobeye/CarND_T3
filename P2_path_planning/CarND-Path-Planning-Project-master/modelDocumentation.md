@@ -14,7 +14,7 @@ With ego-vehicle as the origin, the driving space is split into nine parts:
 ### 2. Build the cost
 The vehicle has 3 possible moves initially: lane stay, change to left, change to right.
 
-In the program's definition, the move with the highest cost will be chosen. The cost building step is listed in the order as following:
+In the program's definition, the move with the highest cost will be chosen. A "lane_life" vairable is used to prevent high-frequency lane changes and hesitation during lane change manuever within heary traffic. The cost building step is listed in the order as following:
 
 * Initialize zero cost for all tree possible moves
 ```c++
@@ -51,6 +51,4 @@ if (cost_left > 0 && (left_space_rear/20.)>1 && (left_space_front/20.)>1) {
 * Check all three costs, take the move with the highest cost.
 
 ## Performance
-The performance is good. The only possible failure that's being spotted so far happens at the lane change stage with low speed and heavy traffic. The vehicle may stay between lanes longer than 3 second. A possible solution could be setting a memory for selected move and freeze the sensor fusion data for a short period of time before the lane change maneuver is complete.
-
-A recorde demo is here: https://youtu.be/1hvsCNfArxQ
+The performance is good. A recorde demo is here: https://youtu.be/1hvsCNfArxQ
